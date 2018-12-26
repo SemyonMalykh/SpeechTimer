@@ -25,17 +25,6 @@ class PrefUtil{
             editor.apply()
         }
 
-        fun setPreviousTimerLengthSet(seconds: Set<String>, context: Context){
-            val editor = PreferenceManager.getDefaultSharedPreferences(context).edit()
-            editor.putStringSet(PREVIOUS_TIMER_LENGTH_SECONDS_ID, seconds)
-            editor.apply()
-        }
-
-        fun getPreviousTimerLengthSet(context: Context): Set<String>{
-            val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-            return preferences.getStringSet(PREVIOUS_TIMER_LENGTH_SECONDS_ID, setOf("0"))
-        }
-
 
         private const val TIMER_STATE_ID = "m.semyondev.speechtimer.timer_state"
 
@@ -57,11 +46,6 @@ class PrefUtil{
         fun getSecondsRemaining(context: Context): Long{
             val preferences = PreferenceManager.getDefaultSharedPreferences(context)
             return preferences.getLong(SECONDS_REMAINING_ID, 0)
-        }
-
-        fun getSecondsRemainingSet(runningTimerNum : Int, context: Context): String{
-            val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-            return preferences.getStringSet(SECONDS_REMAINING_ID, setOf("0")).elementAt(runningTimerNum)
         }
 
         fun setSecondsRemaining(seconds : Long, context: Context){
