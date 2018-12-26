@@ -4,9 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import android.os.CountDownTimer
-import android.os.Vibrator
+import android.os.*
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu
 import android.view.MenuItem
@@ -78,7 +76,6 @@ class TimerActivity : AppCompatActivity() {
             onTimerFinished()
         }
 
-
         fab_set.setOnClickListener{ v ->
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
@@ -97,7 +94,6 @@ class TimerActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-
         if (timerState == TimerState.Running){
             timer.cancel()
             val wakeUpTime = setAlarm(this, nowSeconds, secondsRemaining)
@@ -106,7 +102,6 @@ class TimerActivity : AppCompatActivity() {
         else if (timerState == TimerState.Paused){
             NotificationUtil.showTimerPaused(this)
         }
-
         PrefUtil.setPreviousTimerLength(timerLengthSeconds, this)
         PrefUtil.setSecondsRemaining(secondsRemaining, this)
         PrefUtil.setTimerState(timerState, this)
@@ -114,7 +109,6 @@ class TimerActivity : AppCompatActivity() {
 
     private fun initTimer(){
         timerState = PrefUtil.getTimerState(this)
-
         //we don't want to change the length of the timer which is already running
         //if the length was changed in settings while it was backgrounded
         if (timerState == TimerState.Stopped)
@@ -156,8 +150,12 @@ class TimerActivity : AppCompatActivity() {
         updateButtons()
         updateCountdownUI()
         val vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        vibratorService.vibrate(250)
-        vibratorService.vibrate(250)
+        if (Build.VERSION.SDK_INT >= 26){
+            vibratorService.vibrate(VibrationEffect.createOneShot(300,10))
+        }
+        else{
+            vibratorService.vibrate(300)
+        }
     }
 
     private fun startTimer(){
