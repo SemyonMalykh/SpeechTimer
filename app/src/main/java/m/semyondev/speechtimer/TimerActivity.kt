@@ -149,6 +149,9 @@ class TimerActivity : AppCompatActivity() {
         PrefUtil.setTimerSpan(TimerSpan.Intro, this)
         setNewTimerLength()
 
+        PrefUtil.setPreviousTimerLength(TimerSpan.Intro, PrefUtil.getTimerLength(TimerSpan.Intro, this) * 60L, this)
+        PrefUtil.setPreviousTimerLength(TimerSpan.Main, PrefUtil.getTimerLength(TimerSpan.Main, this) * 60L, this)
+        PrefUtil.setPreviousTimerLength(TimerSpan.Conclusion, PrefUtil.getTimerLength(TimerSpan.Conclusion, this) * 60L, this)
         //set the length of the timer to be the one set in SettingsActivity
         //if the length was changed when the timer was running
 
@@ -160,6 +163,11 @@ class TimerActivity : AppCompatActivity() {
 
         updateButtons()
         updateCountdownUI()
+        vibrate()
+
+    }
+
+    private fun vibrate(){
         val vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if (Build.VERSION.SDK_INT >= 26){
             vibratorService.vibrate(VibrationEffect.createOneShot(300,10))
@@ -172,6 +180,7 @@ class TimerActivity : AppCompatActivity() {
     private fun onTimerContinues(){
         when(timerSpan){
             TimerSpan.Intro -> {
+                vibrate()
                 timerSpan = TimerSpan.Main
                 PrefUtil.setTimerSpan(timerSpan, this)
                 setNewTimerLength()
@@ -181,6 +190,7 @@ class TimerActivity : AppCompatActivity() {
                 startTimer()
             }
             TimerSpan.Main -> {
+                vibrate()
                 timerSpan = TimerSpan.Conclusion
                 PrefUtil.setTimerSpan(timerSpan, this)
                 setNewTimerLength()
