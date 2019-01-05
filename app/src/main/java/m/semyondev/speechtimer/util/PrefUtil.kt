@@ -6,24 +6,54 @@ import m.semyondev.speechtimer.TimerActivity
 
 class PrefUtil{
     companion object {
-        private const val TIME_LENGTH_ID = "m.semyondev.speechtimer.timer_length"
-        fun getTimerLength(context: Context) : Int{
+        private const val TIMER_LENGTH_ID = "m.semyondev.speechtimer.timer_length"
+        private const val TIMER_MAIN_LENGTH_ID = "m.semyondev.speechtimer.timer_length_main"
+        private const val TIMER_CONCLUSION_LENGTH_ID = "m.semyondev.speechtimer.timer_length_conclusion"
+
+        fun getTimerLength(span: TimerActivity.TimerSpan, context: Context) : Int{
             val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-            return preferences.getInt(TIME_LENGTH_ID, 10)
+            when (span){
+                TimerActivity.TimerSpan.Intro ->    return preferences.getInt(TIMER_LENGTH_ID, 10)
+                TimerActivity.TimerSpan.Main ->  return preferences.getInt(TIMER_MAIN_LENGTH_ID, 10)
+                TimerActivity.TimerSpan.Conclusion ->  return preferences.getInt(TIMER_CONCLUSION_LENGTH_ID, 10)
+            }
         }
 
         private const val PREVIOUS_TIMER_LENGTH_SECONDS_ID = "m.semyondev.speechtimer.previous_timer_length"
+        private const val PREVIOUS_TIMER_MAIN_LENGTH_SECONDS_ID = "m.semyondev.speechtimer.previous_timer_length_main"
+        private const val PREVIOUS_TIMER_CONCLUSION_LENGTH_SECONDS_ID = "m.semyondev.speechtimer.previous_timer_length_conclusion"
 
-        fun getPreviousTimerLength(context: Context): Long{
+        fun getPreviousTimerLength(span: TimerActivity.TimerSpan, context: Context): Long{
             val preferences = PreferenceManager.getDefaultSharedPreferences(context)
-            return preferences.getLong(PREVIOUS_TIMER_LENGTH_SECONDS_ID, 0)
+            when (span){
+                TimerActivity.TimerSpan.Intro ->  return preferences.getLong(PREVIOUS_TIMER_LENGTH_SECONDS_ID, 0)
+                TimerActivity.TimerSpan.Main ->  return preferences.getLong(PREVIOUS_TIMER_MAIN_LENGTH_SECONDS_ID, 0)
+                TimerActivity.TimerSpan.Conclusion ->  return preferences.getLong(PREVIOUS_TIMER_CONCLUSION_LENGTH_SECONDS_ID, 0)
+            }
+
         }
 
-        fun setPreviousTimerLength(seconds : Long, context: Context){
+        fun setPreviousTimerLength(span: TimerActivity.TimerSpan, seconds : Long, context: Context){
             val editor = PreferenceManager.getDefaultSharedPreferences(context).edit()
-            editor.putLong(PREVIOUS_TIMER_LENGTH_SECONDS_ID, seconds)
+            when (span){
+                TimerActivity.TimerSpan.Intro ->  editor.putLong(PREVIOUS_TIMER_LENGTH_SECONDS_ID, seconds)
+                TimerActivity.TimerSpan.Main ->  editor.putLong(PREVIOUS_TIMER_MAIN_LENGTH_SECONDS_ID, seconds)
+                TimerActivity.TimerSpan.Conclusion ->  editor.putLong(PREVIOUS_TIMER_CONCLUSION_LENGTH_SECONDS_ID, seconds)
+            }
             editor.apply()
         }
+
+
+//        fun getPreviousTimerLength(context: Context): Long{
+//            val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+//            return preferences.getLong(PREVIOUS_TIMER_LENGTH_SECONDS_ID, 0)
+//        }
+//
+//        fun setPreviousTimerLength(seconds : Long, context: Context){
+//            val editor = PreferenceManager.getDefaultSharedPreferences(context).edit()
+//            editor.putLong(PREVIOUS_TIMER_LENGTH_SECONDS_ID, seconds)
+//            editor.apply()
+//        }
 
 
         private const val TIMER_STATE_ID = "m.semyondev.speechtimer.timer_state"
@@ -38,6 +68,21 @@ class PrefUtil{
             val editor = PreferenceManager.getDefaultSharedPreferences(context).edit()
             val ordinal = state.ordinal
             editor.putInt(TIMER_STATE_ID, ordinal)
+            editor.apply()
+        }
+
+        private const val TIMER_SPAN_ID = "m.semyondev.speechtimer.timer_span"
+
+        fun getTimerSpan(context: Context): TimerActivity.TimerSpan{
+            val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+            val ordinal = preferences.getInt(TIMER_SPAN_ID, 0)
+            return TimerActivity.TimerSpan.values()[ordinal]
+        }
+
+        fun setTimerSpan(state: TimerActivity.TimerSpan, context: Context){
+            val editor = PreferenceManager.getDefaultSharedPreferences(context).edit()
+            val ordinal = state.ordinal
+            editor.putInt(TIMER_SPAN_ID, ordinal)
             editor.apply()
         }
 

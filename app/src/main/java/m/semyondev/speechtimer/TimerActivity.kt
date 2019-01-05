@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.buttons_timer.*
@@ -13,6 +14,7 @@ import kotlinx.android.synthetic.main.buttons_timer.*
 import kotlinx.android.synthetic.main.main_timer.*
 import kotlinx.android.synthetic.main.content_timer.*
 import kotlinx.android.synthetic.main.progress_bar_timer.*
+import m.semyondev.speechtimer.util.NotificationUtil
 import m.semyondev.speechtimer.util.PrefUtil
 import java.util.*
 
@@ -41,6 +43,10 @@ class TimerActivity : AppCompatActivity() {
             get() = Calendar.getInstance().timeInMillis / 1000
     }
 
+    enum class TimerSpan{
+        Intro, Main, Conclusion
+    }
+
     enum class TimerState{
         Stopped, Paused, Running
     }
@@ -48,6 +54,7 @@ class TimerActivity : AppCompatActivity() {
     private lateinit var timer: CountDownTimer
     private var timerLengthSeconds: Long = 0
     private var timerState = TimerState.Stopped
+    private var timerSpan = TimerSpan.Intro
 
     private var secondsRemaining: Long = 0
 
@@ -102,13 +109,15 @@ class TimerActivity : AppCompatActivity() {
         else if (timerState == TimerState.Paused){
             NotificationUtil.showTimerPaused(this)
         }
-        PrefUtil.setPreviousTimerLength(timerLengthSeconds, this)
+        PrefUtil.setPreviousTimerLength(timerSpan, timerLengthSeconds, this)
         PrefUtil.setSecondsRemaining(secondsRemaining, this)
         PrefUtil.setTimerState(timerState, this)
+        PrefUtil.setTimerSpan(timerSpan, this)
     }
 
     private fun initTimer(){
         timerState = PrefUtil.getTimerState(this)
+        timerSpan = PrefUtil.getTimerSpan(this)
         //we don't want to change the length of the timer which is already running
         //if the length was changed in settings while it was backgrounded
         if (timerState == TimerState.Stopped)
@@ -136,6 +145,8 @@ class TimerActivity : AppCompatActivity() {
 
     private fun onTimerFinished(){
         timerState = TimerState.Stopped
+        timerSpan = TimerSpan.Intro
+        PrefUtil.setTimerSpan(TimerSpan.Intro, this)
         setNewTimerLength()
 
         //set the length of the timer to be the one set in SettingsActivity
@@ -158,11 +169,35 @@ class TimerActivity : AppCompatActivity() {
         }
     }
 
+    private fun onTimerContinues(){
+        when(timerSpan){
+            TimerSpan.Intro -> {
+                timerSpan = TimerSpan.Main
+                PrefUtil.setTimerSpan(timerSpan, this)
+                setNewTimerLength()
+                progress_countdown.progress = 0
+                PrefUtil.setSecondsRemaining(timerLengthSeconds, this)
+                secondsRemaining = timerLengthSeconds
+                startTimer()
+            }
+            TimerSpan.Main -> {
+                timerSpan = TimerSpan.Conclusion
+                PrefUtil.setTimerSpan(timerSpan, this)
+                setNewTimerLength()
+                progress_countdown.progress = 0
+                PrefUtil.setSecondsRemaining(timerLengthSeconds, this)
+                secondsRemaining = timerLengthSeconds
+                startTimer()
+            }
+        }
+    }
+
     private fun startTimer(){
         timerState = TimerState.Running
 
         timer = object : CountDownTimer(secondsRemaining * 1000, 1000) {
-            override fun onFinish() = onTimerFinished()
+            override fun onFinish() = if (timerSpan == TimerSpan.Conclusion) onTimerFinished()
+                                      else onTimerContinues()
 
             override fun onTick(millisUntilFinished: Long) {
                 secondsRemaining = millisUntilFinished / 1000
@@ -172,13 +207,15 @@ class TimerActivity : AppCompatActivity() {
     }
 
     private fun setNewTimerLength(){
-        val lengthInMinutes = PrefUtil.getTimerLength(this)
+        Log.v("Timer span", timerSpan.toString())
+        val lengthInMinutes = PrefUtil.getTimerLength(timerSpan,this)
+        Log.v("Timer length", lengthInMinutes.toString())
         timerLengthSeconds = (lengthInMinutes * 60L)
         progress_countdown.max = timerLengthSeconds.toInt()
     }
 
     private fun setPreviousTimerLength(){
-        timerLengthSeconds = PrefUtil.getPreviousTimerLength(this)
+        timerLengthSeconds = PrefUtil.getPreviousTimerLength(timerSpan,this)
         progress_countdown.max = timerLengthSeconds.toInt()
     }
 
@@ -187,7 +224,7 @@ class TimerActivity : AppCompatActivity() {
         val secondsInMinuteUntilFinished = secondsRemaining - minutesUntilFinished * 60
         val secondsStr = secondsInMinuteUntilFinished.toString()
         textView_countdown.text = "$minutesUntilFinished:${if (secondsStr.length == 2) secondsStr else "0" + secondsStr}"
-        progress_countdown.progress = (timerLengthSeconds - secondsRemaining).toInt()
+        progress_countdown.progress = secondsRemaining.toInt()
     }
 
     private fun updateButtons(){

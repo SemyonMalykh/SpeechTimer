@@ -3,6 +3,7 @@ package m.semyondev.speechtimer
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import m.semyondev.speechtimer.util.NotificationUtil
 import m.semyondev.speechtimer.util.PrefUtil
 
 class TimerNotificationActionReceiver : BroadcastReceiver() {
@@ -31,7 +32,7 @@ class TimerNotificationActionReceiver : BroadcastReceiver() {
                 NotificationUtil.showTimerRunning(context, wakeUpTime)
             }
             AppConstants.ACTION_START -> {
-                val minutesRemaining = PrefUtil.getTimerLength(context)
+                val minutesRemaining = PrefUtil.getTimerLength(TimerActivity.TimerSpan.Intro, context)
                 val secondsRemaining = minutesRemaining * 60L
                 val wakeUpTime = TimerActivity.setAlarm(context, TimerActivity.nowSeconds, secondsRemaining)
                 PrefUtil.setTimerState(TimerActivity.TimerState.Running, context)
